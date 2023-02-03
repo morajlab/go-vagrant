@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"sync"
+	"path/filepath"
 )
 
 // BaseCommand adds base functionality and fields for all commands constructed
@@ -108,4 +109,15 @@ func (b *BaseCommand) Wait() error {
 	err := b.cmd.Wait()
 	b.ProcessState = b.cmd.ProcessState
 	return err
+}
+
+// Validate 'Vagrantfile' if command needs it
+func (b *BaseCommand) ValidateVagrantFile() error {
+	// TODO: Detect 'VAGRANT_VAGRANTFILE' environment variable
+	vagrantfilePath := filepath.Join(b.client.VagrantfileDir, "Vagrantfile")
+	if _, err := os.Stat(vagrantfilePath); err != nil {
+		return err
+	}
+
+	return nil
 }

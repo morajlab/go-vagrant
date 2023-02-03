@@ -1,9 +1,8 @@
 package vagrant
 
 import (
-	"os"
+	"errors"
 	"os/exec"
-	"path/filepath"
 )
 
 // VagrantClient is the main entry point to the library. Users should construct
@@ -23,21 +22,25 @@ type VagrantClient struct {
 //
 // vagrantfileDir should be the path to a directory where the Vagrantfile
 // exists.
-func NewVagrantClient(vagrantfileDir string) (*VagrantClient, error) {
+func NewVagrantClient(vagrantfileDir ...string) (*VagrantClient, error) {
+	if len(vagrantfileDir) > 1 {
+		return nil, errors.New("you passed too many arguments")
+	}
+
+	var vagrantfile string = "."
+
+	if len(vagrantfileDir) == 1 {
+		vagrantfile = vagrantfileDir[0]
+	}
+
 	// Verify the vagrant command is in the path
 	path, err := exec.LookPath("vagrant")
 	if err != nil {
 		return nil, err
 	}
 
-	// Verify a Vagrantfile exists
-	vagrantfilePath := filepath.Join(vagrantfileDir, "Vagrantfile")
-	if _, err := os.Stat(vagrantfilePath); err != nil {
-		return nil, err
-	}
-
 	return &VagrantClient{
-		VagrantfileDir: vagrantfileDir,
+		VagrantfileDir: vagrantfile,
 		executable:     path,
 	}, nil
 }
